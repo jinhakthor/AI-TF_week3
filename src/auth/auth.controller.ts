@@ -1,41 +1,19 @@
 // src/auth/auth.controller.ts
 import { Controller, Post, Body, BadRequestException } from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { User } from './user.service';
 
 @Controller('auth')
 export class AuthController {
+  constructor(private readonly authService: AuthService) {}
+
   @Post('signup')
-  async signUp(@Body() body: any) {
-    const { name, email, password } = body;
-
-    // 유효성 검증
-    if (!name || !email || !password) {
-      throw new BadRequestException('Invalid input');
+  async signUp(@Body() body: any): Promise<{ message: string; user: User }> {
+    try {
+      const user = this.authService.signUp(body);
+      return { message: 'User registered successfully', user };
+    } catch (error) {
+      throw new BadRequestException(error.message);
     }
-
-    if (!this.validateEmail(email)) {
-      throw new BadRequestException('Invalid email format');
-    }
-
-    // 사용자 생성 (모킹)
-    const user = { id: Date.now(), name, email, password };
-
-    // 이메일 전송 (모킹)
-    this.sendEmail(email, 'Welcome!', 'Thank you for signing up.');
-
-    // 로깅 (모킹)
-    console.log(`User created: ${JSON.stringify(user)}`);
-
-    return { message: 'User registered successfully', user };
-  }
-
-  validateEmail(email: string): boolean {
-    // 간단한 이메일 정규식
-    const re = /\S+@\S+\.\S+/;
-    return re.test(email);
-  }
-
-  sendEmail(to: string, subject: string, body: string) {
-    // 실제 이메일 전송 대신 콘솔에 출력
-    console.log(`Sending email to ${to} with subject "${subject}"`);
   }
 }
