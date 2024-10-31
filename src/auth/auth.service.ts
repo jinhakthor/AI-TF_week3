@@ -1,13 +1,14 @@
 // src/auth/auth.service.ts
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { UserService, User } from './user.service';
-import { EmailService } from './email.service';
+import { Notification } from 'src/notification/notification.interface';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userService: UserService,
-    private readonly emailService: EmailService,
+    @Inject('NotificationService')
+    private readonly notificationService: Notification,
   ) {}
 
   signUp(data: any): User {
@@ -16,8 +17,9 @@ export class AuthService {
     // 사용자 생성
     const user = this.userService.createUser(name, email, password);
 
-    // 이메일 전송
-    this.emailService.sendWelcomeEmail(email);
+    // 알림 전송
+    const message = `Welcome, ${name}! Thank you for signing up.`;
+    this.notificationService.send(email, message);
 
     return user;
   }
